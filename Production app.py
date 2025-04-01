@@ -148,10 +148,27 @@ if st.session_state.user is not None:
     if not df.empty:
         st.header("Production Statistics")
 
-        # Daily Production Trend
-        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-        fig, ax = plt.subplots(figsize=(4, 2))
-        ax.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
-        ax.set_title('Daily Production Trend', fontsize=10)
-        ax.tick_params(axis='x', rotation=45)
-        st.pyplot(fig, use_container_width=False)
+        col1, col2 = st.columns(2)
+
+        with col1:
+            daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
+            fig1, ax1 = plt.subplots(figsize=(4, 2))
+            ax1.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
+            ax1.set_title('Daily Production Trend', fontsize=10)
+            ax1.tick_params(axis='x', rotation=45)
+            st.pyplot(fig1, use_container_width=False)
+
+        with col2:
+            company_summary = df.groupby('Company')['Seal Count'].sum().reset_index()
+            fig2, ax2 = plt.subplots(figsize=(4, 2))
+            ax2.bar(company_summary['Company'], company_summary['Seal Count'], color='lightgreen')
+            ax2.set_title('Production by Company', fontsize=10)
+            ax2.tick_params(axis='x', rotation=45)
+            st.pyplot(fig2, use_container_width=False)
+
+        operator_summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
+        fig3, ax3 = plt.subplots(figsize=(4, 2))
+        ax3.bar(operator_summary['Operator'], operator_summary['Seal Count'], color='orange')
+        ax3.set_title('Production by Operator', fontsize=10)
+        ax3.tick_params(axis='x', rotation=45)
+        st.pyplot(fig3, use_container_width=False)
