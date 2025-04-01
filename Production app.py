@@ -1,6 +1,12 @@
 import streamlit as st
 import os
 import shutil
+import pandas as pd
+import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
+import requests
+import base64
 
 # Wyczyść cache Streamlit
 if hasattr(st, 'cache_data'):
@@ -11,18 +17,6 @@ if hasattr(st, 'cache_resource'):
 # Usuń katalog cache Streamlit jeśli istnieje
 if os.path.exists(".streamlit"):
     shutil.rmtree(".streamlit")
-
-
-
-import streamlit as st
-import pandas as pd
-import datetime
-import matplotlib.pyplot as plt
-import openpyxl
-import seaborn as sns
-import os
-import requests
-import base64
 
 
 # Initialize the application
@@ -187,20 +181,12 @@ if st.session_state.user is not None:
 
         col1, col2 = st.columns([2, 1])
 
-        with col1:
-            fig, ax = plt.subplots(figsize=(5, 3))
-            seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
-            ax.bar(seal_type_trend.index, seal_type_trend.values, color='coral')
-            st.pyplot(fig)
-
-        with col1:
-            fig, ax = plt.subplots(figsize=(5, 3))
-            company_trend = df.groupby('Company')['Seal Count'].sum()
-            ax.bar(company_trend.index, company_trend.values, color='lightgreen')
-            st.pyplot(fig)
-
-        with col1:
-            fig, ax = plt.subplots(figsize=(5, 3))
-            daily_trend = df.groupby('Date')['Seal Count'].sum()
-            ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
-            st.pyplot(fig)
+        # Production Charts
+        for group, color in zip(['Seal Type', 'Company', 'Date'], ['coral', 'lightgreen', 'skyblue']):
+            with col1:
+                fig, ax = plt.subplots(figsize=(5, 3))
+                trend = df.groupby(group)['Seal Count'].sum().reset_index()
+                sns.barplot(x=group, y='Seal Count', data=trend, ax=ax, palette=color)
+                for i in ax.containers:
+                    ax.bar_label(i, label_type='edge')
+                st.pyplot(fig)
