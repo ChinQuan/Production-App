@@ -43,7 +43,7 @@ def logout():
 
 
 # GitHub Token and Repo Details
-GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'  # Replace 'YOUR_GITHUB_TOKEN' with your token
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO_NAME = 'ChinQuan/Production-App'
 FILE_PATH = 'production_data.csv'
 
