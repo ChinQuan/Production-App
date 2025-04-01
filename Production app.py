@@ -151,16 +151,16 @@ if st.session_state.user is not None:
         charts = ['Daily Production Trend', 'Production by Company', 'Production by Operator']
         for chart_name in charts:
             st.header(chart_name)
-            plt.figure(figsize=(4, 1.5))  # Zmniejszone o 50%
+            plt.figure(figsize=(3, 1.5))  # Zmniejszone o 50%
             if chart_name == 'Daily Production Trend':
                 summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-                plt.bar(summary['Date'], summary['Seal Count'], color='skyblue')
+                plt.bar(summary['Date'], summary['Seal Count'], width=0.5, color='skyblue')
             elif chart_name == 'Production by Company':
                 summary = df.groupby('Company')['Seal Count'].sum().reset_index()
-                plt.bar(summary['Company'], summary['Seal Count'], color='lightgreen')
+                plt.bar(summary['Company'], summary['Seal Count'], width=0.5, color='lightgreen')
             elif chart_name == 'Production by Operator':
                 summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
-                plt.bar(summary['Operator'], summary['Seal Count'], color='orange')
+                plt.bar(summary['Operator'], summary['Seal Count'], width=0.5, color='orange')
             plt.title(chart_name)
             plt.ylim(0)
             plt.xticks(rotation=45)
