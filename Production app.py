@@ -148,37 +148,20 @@ if st.session_state.user is not None:
 
     # Displaying Bar Charts
     if not df.empty:
-        st.header("Daily Production Trend")
-        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(5, 2))
-        plt.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
-        plt.title('Daily Production Trend')
-        plt.xlabel('Date')
-        plt.ylabel('Seal Count')
-        plt.ylim(0)
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
-
-        # Production by Company
-        st.header("Production by Company")
-        company_summary = df.groupby('Company')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(5, 2))
-        plt.bar(company_summary['Company'], company_summary['Seal Count'], color='lightgreen')
-        plt.title('Production by Company')
-        plt.xlabel('Company')
-        plt.ylabel('Seal Count')
-        plt.ylim(0)
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
-
-        # Production by Operator
-        st.header("Production by Operator")
-        operator_summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(5, 2))
-        plt.bar(operator_summary['Operator'], operator_summary['Seal Count'], color='orange')
-        plt.title('Production by Operator')
-        plt.xlabel('Operator')
-        plt.ylabel('Seal Count')
-        plt.ylim(0)
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
+        charts = ['Daily Production Trend', 'Production by Company', 'Production by Operator']
+        for chart_name in charts:
+            st.header(chart_name)
+            plt.figure(figsize=(4, 1.5))  # Zmniejszone o 50%
+            if chart_name == 'Daily Production Trend':
+                summary = df.groupby('Date')['Seal Count'].sum().reset_index()
+                plt.bar(summary['Date'], summary['Seal Count'], color='skyblue')
+            elif chart_name == 'Production by Company':
+                summary = df.groupby('Company')['Seal Count'].sum().reset_index()
+                plt.bar(summary['Company'], summary['Seal Count'], color='lightgreen')
+            elif chart_name == 'Production by Operator':
+                summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
+                plt.bar(summary['Operator'], summary['Seal Count'], color='orange')
+            plt.title(chart_name)
+            plt.ylim(0)
+            plt.xticks(rotation=45)
+            st.pyplot(plt)
