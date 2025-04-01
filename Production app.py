@@ -150,24 +150,8 @@ if st.session_state.user is not None:
 
         # Daily Production Trend
         daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(6, 4))
-        plt.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
-        plt.title('Daily Production Trend')
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
-
-        # Production by Company
-        company_summary = df.groupby('Company')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(6, 4))
-        plt.bar(company_summary['Company'], company_summary['Seal Count'], color='lightgreen')
-        plt.title('Production by Company')
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
-
-        # Production by Operator
-        operator_summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(6, 4))
-        plt.bar(operator_summary['Operator'], operator_summary['Seal Count'], color='orange')
-        plt.title('Production by Operator')
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
+        fig, ax = plt.subplots(figsize=(4, 2))
+        ax.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
+        ax.set_title('Daily Production Trend', fontsize=10)
+        ax.tick_params(axis='x', rotation=45)
+        st.pyplot(fig, use_container_width=False)
