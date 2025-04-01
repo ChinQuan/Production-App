@@ -5,17 +5,12 @@ import shutil
 # Wyczyść cache Streamlit
 if hasattr(st, 'cache_data'):
     st.cache_data.clear()
-if hasattr(st, 'cache'):
-    st.cache.clear()
+if hasattr(st, 'cache_resource'):
+    st.cache_resource.clear()
 
 # Usuń katalog cache Streamlit jeśli istnieje
 if os.path.exists(".streamlit"):
     shutil.rmtree(".streamlit")
-
-# Usuń charts.py jeśli istnieje
-if os.path.exists("charts.py"):
-    os.remove("charts.py")
-
 
 
 
