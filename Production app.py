@@ -55,10 +55,9 @@ def upload_to_github(content):
         'Accept': 'application/vnd.github.v3+json'
     }
 
-    # Check if the file already exists
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        sha = response.json()['sha']
+        sha = response.json().get('sha')
     else:
         sha = None
 
@@ -87,7 +86,7 @@ else:
 
 def save_data(df):
     df.to_csv('production_data.csv', index=False)
-    upload_to_github(df.to_csv(index=False))  # Save directly to GitHub
+    upload_to_github(df.to_csv(index=False))
 
 
 # Login Panel
@@ -146,3 +145,16 @@ if st.session_state.user is not None:
 
     st.header("Production Data Overview")
     st.dataframe(df)
+
+    # Displaying a Bar Chart
+    if not df.empty:
+        st.header("Daily Production Trend")
+        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
+        plt.figure(figsize=(7, 3))  # Zmniejszony rozmiar o 30%
+        plt.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
+        plt.title('Daily Production Trend')
+        plt.xlabel('Date')
+        plt.ylabel('Seal Count')
+        plt.ylim(0)
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
