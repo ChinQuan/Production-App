@@ -6,6 +6,7 @@ import openpyxl
 from fpdf import FPDF
 import io
 import seaborn as sns
+import os
 
 
 # Initialize the application
@@ -39,9 +40,17 @@ def logout():
     st.session_state.user = None
 
 
-def save_users(users_df):
-    with pd.ExcelWriter('users.xlsx', engine='openpyxl', mode='w') as writer:
-        users_df.to_excel(writer, sheet_name='Users', index=False)
+# Load production data from CSV
+if os.path.exists('production_data.csv'):
+    df = pd.read_csv('production_data.csv')
+else:
+    df = pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time (Minutes)', 'Downtime (Minutes)', 'Reason for Downtime'])
+
+
+# Save production data to CSV
+
+def save_data(df):
+    df.to_csv('production_data.csv', index=False)
 
 
 # Login Panel
@@ -61,38 +70,6 @@ else:
     st.sidebar.write(f"Logged in as {st.session_state.user['Username']}")
     if st.sidebar.button("Logout"):
         logout()
-
-
-# Admin Panel
-if st.session_state.user is not None and st.session_state.user['Role'] == 'Admin':
-    st.sidebar.header("Admin Panel")
-
-    with st.sidebar.form("Add User"):
-        new_username = st.text_input("New Username")
-        new_password = st.text_input("New Password", type="password")
-        new_role = st.selectbox("Role", ["Admin", "Manager", "Operator"])
-        add_user = st.form_submit_button("Add User")
-
-        if add_user:
-            new_user = pd.DataFrame({
-                'Username': [new_username],
-                'Password': [new_password],
-                'Role': [new_role]
-            })
-            users_df = pd.concat([users_df, new_user], ignore_index=True)
-            save_users(users_df)
-            st.sidebar.success("User added successfully!")
-
-    # Display Users List
-    st.header("Manage Users")
-    st.dataframe(users_df)
-
-    # Delete User
-    delete_user = st.selectbox("Select User to Delete", users_df['Username'].tolist())
-    if st.button("Delete User"):
-        users_df = users_df[users_df['Username'] != delete_user]
-        save_users(users_df)
-        st.success(f"User {delete_user} deleted successfully!")
 
 
 # Application available for all logged-in users
@@ -116,12 +93,6 @@ if st.session_state.user is not None:
         submitted = st.form_submit_button("Save Entry")
 
         if submitted:
-            # Load or create production data file
-            try:
-                df = pd.read_excel('production_data.xlsx', sheet_name='Daily Production Record')
-            except FileNotFoundError:
-                df = pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time (Minutes)', 'Downtime (Minutes)', 'Reason for Downtime'])
-
             # Add new entry
             new_entry = pd.DataFrame({
                 'Date': [date],
@@ -136,11 +107,19 @@ if st.session_state.user is not None:
 
             df = pd.concat([df, new_entry], ignore_index=True)
 
-            # Save to Excel
-            with pd.ExcelWriter('production_data.xlsx', engine='openpyxl', mode='w') as writer:
-                df.to_excel(writer, sheet_name='Daily Production Record', index=False)
+            # Save data to CSV
+            save_data(df)
 
             st.sidebar.success("Entry saved successfully!")
 
+    # Display the data
+    st.header("Production Data Overview")
+    st.dataframe(df)
+
+    # Displaying a simple bar chart
+    if not df.empty:
+        st.header("Daily Production Trend")
+        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
+        st.line_chart(daily_summary, x='Date', y='Seal Count')
 else:
     st.write("Please log in to use the application.")
