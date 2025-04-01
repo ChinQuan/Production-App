@@ -3,8 +3,6 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 import openpyxl
-from fpdf import FPDF
-import io
 import seaborn as sns
 import os
 import requests
@@ -146,24 +144,7 @@ if st.session_state.user is not None:
     st.header("Production Data Overview")
     st.dataframe(df)
 
-    # Displaying Bar Charts
-    if not df.empty:
-        charts = ['Daily Production Trend', 'Production by Company', 'Production by Operator']
-        for chart_name in charts:
-            st.header(chart_name)
-            fig, ax = plt.subplots(figsize=(2, 1), dpi=120)  # Ekstremalnie mały rozmiar z wysokim DPI
-            if chart_name == 'Daily Production Trend':
-                summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-                ax.bar(summary['Date'], summary['Seal Count'], width=0.4, color='skyblue')
-            elif chart_name == 'Production by Company':
-                summary = df.groupby('Company')['Seal Count'].sum().reset_index()
-                ax.bar(summary['Company'], summary['Seal Count'], width=0.4, color='lightgreen')
-            elif chart_name == 'Production by Operator':
-                summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
-                ax.bar(summary['Operator'], summary['Seal Count'], width=0.4, color='orange')
-            ax.set_title(chart_name, fontsize=8)
-            ax.set_ylim(0)
-            plt.xticks(rotation=45, fontsize=6)
-            plt.yticks(fontsize=6)
-            plt.tight_layout()
-            st.pyplot(fig)
+    # Save Data Button
+    if st.button("Save Changes"):
+        save_data(df)
+        st.success("Changes saved successfully!")
