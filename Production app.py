@@ -186,7 +186,7 @@ if st.session_state.user is not None:
             with col1:
                 fig, ax = plt.subplots(figsize=(5, 3))
                 trend = df.groupby(group)['Seal Count'].sum().reset_index()
-                sns.barplot(x=group, y='Seal Count', data=trend, ax=ax, palette=color)
+                sns.barplot(x=group, y='Seal Count', data=trend, ax=ax, color=color)
                 for i in ax.containers:
                     ax.bar_label(i, label_type='edge')
                 st.pyplot(fig)
