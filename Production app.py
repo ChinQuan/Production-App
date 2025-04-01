@@ -138,26 +138,31 @@ if st.session_state.user is not None:
     if menu == 'Production Charts':
         st.header("Production Charts")
         if not df.empty:
-            fig, ax = plt.subplots(figsize=(6, 4))
-            daily_trend = df.groupby('Date')['Seal Count'].sum()
-            bars = ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
-            for bar in bars:
-                ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                            xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
-            st.pyplot(fig)
+            col1, col2 = st.columns([3, 1])
 
-            fig, ax = plt.subplots(figsize=(6, 4))
-            company_trend = df.groupby('Company')['Seal Count'].sum()
-            bars = ax.bar(company_trend.index, company_trend.values, color='lightgreen')
-            for bar in bars:
-                ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                            xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
-            st.pyplot(fig)
+            with col1:
+                fig, ax = plt.subplots(figsize=(6, 4))
+                daily_trend = df.groupby('Date')['Seal Count'].sum()
+                bars = ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
+                for bar in bars:
+                    ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                                xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+                st.pyplot(fig, use_container_width=False)
 
-            fig, ax = plt.subplots(figsize=(6, 4))
-            seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
-            bars = ax.bar(seal_type_trend.index, seal_type_trend.values, color='coral')
-            for bar in bars:
-                ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                            xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
-            st.pyplot(fig)
+            with col1:
+                fig, ax = plt.subplots(figsize=(6, 4))
+                company_trend = df.groupby('Company')['Seal Count'].sum()
+                bars = ax.bar(company_trend.index, company_trend.values, color='lightgreen')
+                for bar in bars:
+                    ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                                xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+                st.pyplot(fig, use_container_width=False)
+
+            with col1:
+                fig, ax = plt.subplots(figsize=(6, 4))
+                seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
+                bars = ax.bar(seal_type_trend.index, seal_type_trend.values, color='coral')
+                for bar in bars:
+                    ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                                xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+                st.pyplot(fig, use_container_width=False)
