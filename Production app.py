@@ -119,7 +119,7 @@ if st.session_state.user is not None:
 
     if menu == 'Production Charts':
         st.header("Production Charts")
-        if not df.empty():
+        if not df.empty:  # FIXED HERE - Removed ()
             col1, col2 = st.columns([2, 1])  # Adjusted column ratio to make charts smaller
 
             with col1:
