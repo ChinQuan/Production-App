@@ -173,12 +173,18 @@ if st.session_state.user is not None:
 
         with col1:
             fig, ax = plt.subplots(figsize=(5, 3))
-            daily_trend = df.groupby('Date')['Seal Count'].sum()
-            ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
+            seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
+            ax.bar(seal_type_trend.index, seal_type_trend.values, color='coral')
             st.pyplot(fig)
 
         with col1:
             fig, ax = plt.subplots(figsize=(5, 3))
             company_trend = df.groupby('Company')['Seal Count'].sum()
             ax.bar(company_trend.index, company_trend.values, color='lightgreen')
+            st.pyplot(fig)
+
+        with col1:
+            fig, ax = plt.subplots(figsize=(5, 3))
+            daily_trend = df.groupby('Date')['Seal Count'].sum()
+            ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
             st.pyplot(fig)
