@@ -1,4 +1,4 @@
-import streamlit as st
+mport streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
@@ -151,18 +151,19 @@ if st.session_state.user is not None:
         charts = ['Daily Production Trend', 'Production by Company', 'Production by Operator']
         for chart_name in charts:
             st.header(chart_name)
-            plt.figure(figsize=(2, 1))  # Ekstremalnie mały rozmiar
+            fig, ax = plt.subplots(figsize=(2, 1), dpi=120)  # Ekstremalnie mały rozmiar z wysokim DPI
             if chart_name == 'Daily Production Trend':
                 summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-                plt.bar(summary['Date'], summary['Seal Count'], width=0.4, color='skyblue')
+                ax.bar(summary['Date'], summary['Seal Count'], width=0.4, color='skyblue')
             elif chart_name == 'Production by Company':
                 summary = df.groupby('Company')['Seal Count'].sum().reset_index()
-                plt.bar(summary['Company'], summary['Seal Count'], width=0.4, color='lightgreen')
+                ax.bar(summary['Company'], summary['Seal Count'], width=0.4, color='lightgreen')
             elif chart_name == 'Production by Operator':
                 summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
-                plt.bar(summary['Operator'], summary['Seal Count'], width=0.4, color='orange')
-            plt.title(chart_name, fontsize=8)
-            plt.ylim(0)
+                ax.bar(summary['Operator'], summary['Seal Count'], width=0.4, color='orange')
+            ax.set_title(chart_name, fontsize=8)
+            ax.set_ylim(0)
             plt.xticks(rotation=45, fontsize=6)
             plt.yticks(fontsize=6)
-            st.pyplot(plt)
+            plt.tight_layout()
+            st.pyplot(fig)
