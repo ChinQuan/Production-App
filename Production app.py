@@ -98,22 +98,20 @@ else:
             submitted = st.form_submit_button("Save Entry")
 
             if submitted:
-    new_entry = pd.DataFrame({
-        'Date': [date],
-        'Company': [company],
-        'Seal Count': [seals_count],
-        'Operator': [operator],
-        'Seal Type': [seal_type],
-        'Production Time': [production_time],
-        'Downtime': [downtime],
-        'Reason for Downtime': [downtime_reason]
-    })
-    
-    # Zamiast df.append(), używamy pd.concat()
-    df = pd.concat([df, new_entry], ignore_index=True)
-    save_data(df)
-    st.sidebar.success("Production entry saved successfully.")
-
+                new_entry = {
+                    'Date': date,
+                    'Company': company,
+                    'Seal Count': seals_count,
+                    'Operator': operator,
+                    'Seal Type': seal_type,
+                    'Production Time': production_time,
+                    'Downtime': downtime,
+                    'Reason for Downtime': downtime_reason
+                }
+                # Używamy pd.concat() zamiast df.append()
+                df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+                save_data(df)
+                st.sidebar.success("Production entry saved successfully.")
 
     if menu == 'Production Charts':
         st.header("Production Charts")
