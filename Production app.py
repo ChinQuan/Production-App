@@ -138,29 +138,32 @@ if st.session_state.user is not None:
     if menu == 'Production Charts':
         st.header("Production Charts")
         if not df.empty:
-            # Plotting Daily Production Trend
-            plt.figure(figsize=(6,4))
+            plt.figure(figsize=(4, 3))
             daily_trend = df.groupby('Date')['Seal Count'].sum()
-            daily_trend.plot(kind='bar', color='skyblue')
+            ax = daily_trend.plot(kind='bar', color='skyblue')
             plt.title('Daily Production Trend')
             plt.xlabel('Date')
             plt.ylabel('Seal Count')
+            for p in ax.patches:
+                ax.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.01))
             st.pyplot(plt)
 
-            # Plotting Production by Company
-            plt.figure(figsize=(6,4))
+            plt.figure(figsize=(4, 3))
             company_trend = df.groupby('Company')['Seal Count'].sum()
-            company_trend.plot(kind='bar', color='lightgreen')
+            ax = company_trend.plot(kind='bar', color='lightgreen')
             plt.title('Production by Company')
             plt.xlabel('Company')
             plt.ylabel('Seal Count')
+            for p in ax.patches:
+                ax.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.01))
             st.pyplot(plt)
 
-            # Plotting Production by Seal Type
-            plt.figure(figsize=(6,4))
+            plt.figure(figsize=(4, 3))
             seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
-            seal_type_trend.plot(kind='bar', color='coral')
+            ax = seal_type_trend.plot(kind='bar', color='coral')
             plt.title('Production by Seal Type')
             plt.xlabel('Seal Type')
             plt.ylabel('Seal Count')
+            for p in ax.patches:
+                ax.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.01))
             st.pyplot(plt)
