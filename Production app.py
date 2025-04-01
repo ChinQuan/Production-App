@@ -116,10 +116,17 @@ if st.session_state.user is not None:
     st.header("Production Data Overview")
     st.dataframe(df)
 
-    # Displaying a simple bar chart
+    # Displaying a Bar Chart instead of Line Chart
     if not df.empty:
         st.header("Daily Production Trend")
         daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-        st.line_chart(daily_summary, x='Date', y='Seal Count')
+        plt.figure(figsize=(10, 5))
+        plt.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
+        plt.title('Daily Production Trend')
+        plt.xlabel('Date')
+        plt.ylabel('Seal Count')
+        plt.ylim(0)
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
 else:
     st.write("Please log in to use the application.")
