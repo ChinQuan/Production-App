@@ -7,6 +7,8 @@ from fpdf import FPDF
 import io
 import seaborn as sns
 import os
+import requests
+import base64
 
 
 # Initialize the application
@@ -40,6 +42,42 @@ def logout():
     st.session_state.user = None
 
 
+# GitHub Token and Repo Details
+GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'  # Replace 'YOUR_GITHUB_TOKEN' with your token
+REPO_NAME = 'ChinQuan/Production-App'
+FILE_PATH = 'production_data.csv'
+
+
+def upload_to_github(content):
+    url = f'https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}'
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+
+    # Check if the file already exists
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        sha = response.json()['sha']
+    else:
+        sha = None
+
+    data = {
+        'message': 'Updating production data',
+        'content': base64.b64encode(content.encode()).decode('utf-8')
+    }
+
+    if sha:
+        data['sha'] = sha
+
+    response = requests.put(url, json=data, headers=headers)
+
+    if response.status_code == 201 or response.status_code == 200:
+        st.sidebar.success('Data saved successfully to GitHub!')
+    else:
+        st.sidebar.error('Failed to save data to GitHub. Error: ' + response.json().get('message', 'Unknown error'))
+
+
 # Load production data from CSV
 if os.path.exists('production_data.csv'):
     df = pd.read_csv('production_data.csv')
@@ -47,10 +85,9 @@ else:
     df = pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time (Minutes)', 'Downtime (Minutes)', 'Reason for Downtime'])
 
 
-# Save production data to CSV
-
 def save_data(df):
     df.to_csv('production_data.csv', index=False)
+    upload_to_github(df.to_csv(index=False))  # Save directly to GitHub
 
 
 # Login Panel
@@ -93,7 +130,6 @@ if st.session_state.user is not None:
         submitted = st.form_submit_button("Save Entry")
 
         if submitted:
-            # Add new entry
             new_entry = pd.DataFrame({
                 'Date': [date],
                 'Company': [company.title()],
@@ -106,27 +142,7 @@ if st.session_state.user is not None:
             })
 
             df = pd.concat([df, new_entry], ignore_index=True)
-
-            # Save data to CSV
             save_data(df)
 
-            st.sidebar.success("Entry saved successfully!")
-
-    # Display the data
     st.header("Production Data Overview")
     st.dataframe(df)
-
-    # Displaying a Bar Chart instead of Line Chart
-    if not df.empty:
-        st.header("Daily Production Trend")
-        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-        plt.figure(figsize=(10, 5))
-        plt.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
-        plt.title('Daily Production Trend')
-        plt.xlabel('Date')
-        plt.ylabel('Seal Count')
-        plt.ylim(0)
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
-else:
-    st.write("Please log in to use the application.")
