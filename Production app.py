@@ -144,7 +144,30 @@ if st.session_state.user is not None:
     st.header("Production Data Overview")
     st.dataframe(df)
 
-    # Save Data Button
-    if st.button("Save Changes"):
-        save_data(df)
-        st.success("Changes saved successfully!")
+    # Plotting Section
+    if not df.empty:
+        st.header("Production Statistics")
+
+        # Daily Production Trend
+        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
+        plt.figure(figsize=(6, 4))
+        plt.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
+        plt.title('Daily Production Trend')
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
+
+        # Production by Company
+        company_summary = df.groupby('Company')['Seal Count'].sum().reset_index()
+        plt.figure(figsize=(6, 4))
+        plt.bar(company_summary['Company'], company_summary['Seal Count'], color='lightgreen')
+        plt.title('Production by Company')
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
+
+        # Production by Operator
+        operator_summary = df.groupby('Operator')['Seal Count'].sum().reset_index()
+        plt.figure(figsize=(6, 4))
+        plt.bar(operator_summary['Operator'], operator_summary['Seal Count'], color='orange')
+        plt.title('Production by Operator')
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
