@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
 import base64
+from fpdf import FPDF
 
 # Wyczyść cache Streamlit
 if hasattr(st, 'cache_data'):
@@ -55,41 +56,6 @@ def logout():
     st.session_state.user = None
 
 
-# GitHub Token and Repo Details
-GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
-REPO_NAME = 'ChinQuan/Production-App'
-FILE_PATH = 'production_data.csv'
-
-
-def upload_to_github(content):
-    url = f'https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}'
-    headers = {
-        'Authorization': f'token {GITHUB_TOKEN}',
-        'Accept': 'application/vnd.github.v3+json'
-    }
-
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        sha = response.json().get('sha')
-    else:
-        sha = None
-
-    data = {
-        'message': 'Updating production data',
-        'content': base64.b64encode(content.encode()).decode('utf-8')
-    }
-
-    if sha:
-        data['sha'] = sha
-
-    response = requests.put(url, json=data, headers=headers)
-
-    if response.status_code == 201 or response.status_code == 200:
-        st.sidebar.success('Data saved successfully to GitHub!')
-    else:
-        st.sidebar.error('Failed to save data to GitHub. Error: ' + response.json().get('message', 'Unknown error'))
-
-
 # Load production data from CSV
 if os.path.exists('production_data.csv'):
     df = pd.read_csv('production_data.csv')
@@ -97,9 +63,9 @@ else:
     df = pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time (Minutes)', 'Downtime (Minutes)', 'Reason for Downtime'])
 
 
-def save_data(df):
+# Save Data
+def save_data():
     df.to_csv('production_data.csv', index=False)
-    upload_to_github(df.to_csv(index=False))
 
 
 # Login Panel
@@ -125,68 +91,80 @@ else:
 if st.session_state.user is not None:
     # Sidebar Navigation
     st.sidebar.title("Navigation")
-    menu = st.sidebar.radio("Go to", ['Home', 'Production Charts'])
+    menu = st.sidebar.radio("Go to", ['Home', 'Production Charts', 'Export Data'])
 
     if menu == 'Home':
         st.header("Production Data Overview")
+        
         if not df.empty:
             st.dataframe(df)
 
-            # Display Statistics
-            st.header("Production Statistics")
-            daily_average = df['Seal Count'].mean()
-            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+            st.sidebar.header("Add New Production Entry")
+            with st.sidebar.form("production_form"):
+                date = st.date_input("Production Date", datetime.date.today())
+                company = st.text_input("Company Name")
+                operator = st.session_state.user['Username']
+                seal_type = st.selectbox("Seal Type", st.session_state.seal_types)
+                seals_count = st.number_input("Number of Seals", min_value=0, step=1)
+                production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=0.1)
+                downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=0.1)
+                downtime_reason = st.text_input("Reason for Downtime")
 
-            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Companies by Production")
-            st.write(top_companies)
+                submitted = st.form_submit_button("Save Entry")
 
-            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Operators by Production")
-            st.write(top_operators)
+                if submitted:
+                    new_entry = pd.DataFrame({
+                        'Date': [date],
+                        'Company': [company.title()],
+                        'Seal Count': [seals_count],
+                        'Operator': [operator],
+                        'Seal Type': [seal_type],
+                        'Production Time (Minutes)': [production_time],
+                        'Downtime (Minutes)': [downtime],
+                        'Reason for Downtime': [downtime_reason]
+                    })
 
-        # Data Entry Form
-        st.sidebar.header("Add New Production Entry")
+                    df = pd.concat([df, new_entry], ignore_index=True)
+                    save_data()
+                    st.sidebar.success("Production entry saved successfully.")
 
-        with st.sidebar.form("production_form"):
-            date = st.date_input("Production Date", datetime.date.today())
-            company = st.text_input("Company Name")
-            operator = st.session_state.user['Username']
-            seal_type = st.selectbox("Seal Type", st.session_state.seal_types)
-            seals_count = st.number_input("Number of Seals", min_value=0, step=1)
-            production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=0.1)
-            downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=0.1)
-            downtime_reason = st.text_input("Reason for Downtime")
-
-            submitted = st.form_submit_button("Save Entry")
-
-            if submitted:
-                new_entry = pd.DataFrame({
-                    'Date': [date],
-                    'Company': [company.title()],
-                    'Seal Count': [seals_count],
-                    'Operator': [operator],
-                    'Seal Type': [seal_type],
-                    'Production Time (Minutes)': [production_time],
-                    'Downtime (Minutes)': [downtime],
-                    'Reason for Downtime': [downtime_reason]
-                })
-
-                df = pd.concat([df, new_entry], ignore_index=True)
-                save_data(df)
-                st.sidebar.success("Production entry saved successfully.")
-
-    if menu == 'Production Charts' and not df.empty:
+    if menu == 'Production Charts':
         st.header("Production Charts")
+        
+        selected_operator = st.sidebar.selectbox("Select Operator", options=['All'] + sorted(df['Operator'].unique().tolist()))
+        selected_company = st.sidebar.selectbox("Select Company", options=['All'] + sorted(df['Company'].unique().tolist()))
+        selected_seal_type = st.sidebar.selectbox("Select Seal Type", options=['All'] + sorted(df['Seal Type'].unique().tolist()))
+        
+        filtered_df = df.copy()
+        
+        if selected_operator != 'All':
+            filtered_df = filtered_df[filtered_df['Operator'] == selected_operator]
+        if selected_company != 'All':
+            filtered_df = filtered_df[filtered_df['Company'] == selected_company]
+        if selected_seal_type != 'All':
+            filtered_df = filtered_df[filtered_df['Seal Type'] == selected_seal_type]
+        
+        st.write("Filtered Data", filtered_df)
 
-        col1, col2 = st.columns([2, 1])
+        st.line_chart(filtered_df.groupby('Date')['Seal Count'].sum())
 
-        # Production Charts
-        for group, color in zip(['Seal Type', 'Company', 'Date'], ['coral', 'lightgreen', 'skyblue']):
-            with col1:
-                fig, ax = plt.subplots(figsize=(5, 3))
-                trend = df.groupby(group)['Seal Count'].sum().reset_index()
-                sns.barplot(x=group, y='Seal Count', data=trend, ax=ax, color=color)
-                for i in ax.containers:
-                    ax.bar_label(i, label_type='edge')
-                st.pyplot(fig)
+        st.bar_chart(filtered_df.groupby('Company')['Seal Count'].sum())
+
+        st.bar_chart(filtered_df.groupby('Seal Type')['Seal Count'].sum())
+
+    if menu == 'Export Data':
+        st.header("Export Data")
+        
+        if st.button("Download as Excel"):
+            df.to_excel('production_data_export.xlsx', index=False)
+            with open('production_data_export.xlsx', 'rb') as f:
+                st.download_button(label="Download Excel file", data=f, file_name="production_data_export.xlsx")
+
+        if st.button("Download as PDF"):
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.cell(200, 10, txt="Production Data Report", ln=True, align='C')
+            pdf.output("production_data_report.pdf")
+            with open("production_data_report.pdf", "rb") as f:
+                st.download_button(label="Download PDF file", data=f, file_name="production_data_report.pdf")
