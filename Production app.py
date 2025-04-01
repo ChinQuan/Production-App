@@ -166,3 +166,19 @@ if st.session_state.user is not None:
                 save_data(df)
                 st.sidebar.success("Production entry saved successfully.")
 
+    if menu == 'Production Charts' and not df.empty:
+        st.header("Production Charts")
+
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            fig, ax = plt.subplots(figsize=(5, 3))
+            daily_trend = df.groupby('Date')['Seal Count'].sum()
+            ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
+            st.pyplot(fig)
+
+        with col1:
+            fig, ax = plt.subplots(figsize=(5, 3))
+            company_trend = df.groupby('Company')['Seal Count'].sum()
+            ax.bar(company_trend.index, company_trend.values, color='lightgreen')
+            st.pyplot(fig)
