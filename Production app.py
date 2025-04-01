@@ -117,51 +117,34 @@ if st.session_state.user is not None:
     st.sidebar.title("Navigation")
     menu = st.sidebar.radio("Go to", ['Home', 'Production Charts'])
 
-    if menu == 'Home':
-        st.header("Production Data Overview")
-        st.dataframe(df)
+    if menu == 'Production Charts':
+        st.header("Production Charts")
+        if not df.empty():
+            col1, col2 = st.columns([2, 1])  # Adjusted column ratio to make charts smaller
 
-        # Display Statistics
-        st.header("Production Statistics")
-        if not df.empty:
-            daily_average = df['Seal Count'].mean()
-            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+            with col1:
+                fig, ax = plt.subplots(figsize=(5, 3))
+                daily_trend = df.groupby('Date')['Seal Count'].sum()
+                bars = ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
+                for bar in bars:
+                    ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                                xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+                st.pyplot(fig, use_container_width=False)
 
-            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Companies by Production")
-            st.write(top_companies)
+            with col1:
+                fig, ax = plt.subplots(figsize=(5, 3))
+                company_trend = df.groupby('Company')['Seal Count'].sum()
+                bars = ax.bar(company_trend.index, company_trend.values, color='lightgreen')
+                for bar in bars:
+                    ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                                xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+                st.pyplot(fig, use_container_width=False)
 
-            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Operators by Production")
-            st.write(top_operators)
-
-        # Data Entry Form
-        st.sidebar.header("Add New Production Entry")
-
-        with st.sidebar.form("production_form"):
-            date = st.date_input("Production Date", datetime.date.today())
-            company = st.text_input("Company Name")
-            operator = st.session_state.user['Username']
-            seal_type = st.selectbox("Seal Type", st.session_state.seal_types)
-            seals_count = st.number_input("Number of Seals", min_value=0, step=1)
-            production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=0.1)
-            downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=0.1)
-            downtime_reason = st.text_input("Reason for Downtime")
-
-            submitted = st.form_submit_button("Save Entry")
-
-            if submitted:
-                new_entry = pd.DataFrame({
-                    'Date': [date],
-                    'Company': [company.title()],
-                    'Seal Count': [seals_count],
-                    'Operator': [operator],
-                    'Seal Type': [seal_type],
-                    'Production Time (Minutes)': [production_time],
-                    'Downtime (Minutes)': [downtime],
-                    'Reason for Downtime': [downtime_reason]
-                })
-
-                df = pd.concat([df, new_entry], ignore_index=True)
-                save_data(df)
-                st.sidebar.success("Production entry saved successfully.")
+            with col1:
+                fig, ax = plt.subplots(figsize=(5, 3))
+                seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
+                bars = ax.bar(seal_type_trend.index, seal_type_trend.values, color='coral')
+                for bar in bars:
+                    ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                                xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+                st.pyplot(fig, use_container_width=False)
