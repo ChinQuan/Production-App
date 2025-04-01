@@ -18,6 +18,11 @@ st.title("Production Manager App")
 if 'user' not in st.session_state:
     st.session_state.user = None
 
+if 'seal_types' not in st.session_state:
+    st.session_state.seal_types = [
+        'Standard Soft Seals', 'Standard Hard Seals', 'Custom Soft Seals', 'Custom Hard Seals', 'V-Rings (Soft Material)'
+    ]
+
 
 # Load users file
 try:
@@ -111,6 +116,14 @@ if st.session_state.user is not None:
     st.header(f"Welcome, {st.session_state.user['Username']}!")
     st.write("You are logged in.")
 
+    # Add New Seal Type
+    with st.sidebar.form("add_seal_type_form"):
+        new_seal_type = st.text_input("Add New Seal Type")
+        add_seal_type_btn = st.form_submit_button("Add")
+        if add_seal_type_btn and new_seal_type:
+            st.session_state.seal_types.append(new_seal_type.title())
+            st.sidebar.success(f"Added new seal type: {new_seal_type.title()}")
+
     # Data Entry Form
     st.sidebar.header("Add New Production Entry")
 
@@ -118,7 +131,7 @@ if st.session_state.user is not None:
         date = st.date_input("Production Date", datetime.date.today())
         company = st.text_input("Company Name")
         operator = st.session_state.user['Username']
-        seal_type = st.text_input("Seal Type")
+        seal_type = st.selectbox("Seal Type", st.session_state.seal_types)
         seals_count = st.number_input("Number of Seals", min_value=0, step=1)
         production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=0.1)
         downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=0.1)
@@ -132,7 +145,7 @@ if st.session_state.user is not None:
                 'Company': [company.title()],
                 'Seal Count': [seals_count],
                 'Operator': [operator],
-                'Seal Type': [seal_type.title()],
+                'Seal Type': [seal_type],
                 'Production Time (Minutes)': [production_time],
                 'Downtime (Minutes)': [downtime],
                 'Reason for Downtime': [downtime_reason]
@@ -140,47 +153,4 @@ if st.session_state.user is not None:
 
             df = pd.concat([df, new_entry], ignore_index=True)
             save_data(df)
-
-    # Display Production Data
-    st.header("Production Data Overview")
-    st.dataframe(df)
-
-    # Display Statistics
-    st.header("Production Statistics")
-    if not df.empty:
-        daily_average = df['Seal Count'].mean()
-        st.write(f"### Average Daily Production: {daily_average:.2f} seals")
-
-        top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
-        st.write("### Top 3 Companies by Production")
-        st.write(top_companies)
-
-        top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
-        st.write("### Top 3 Operators by Production")
-        st.write(top_operators)
-
-    # Display Charts
-    st.header("Production Charts")
-    col1, col2 = st.columns(2)
-
-    with col1:
-        daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
-        fig1, ax1 = plt.subplots(figsize=(4, 2))
-        bars = ax1.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
-        for bar in bars:
-            height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width() / 2.0, height, f'{int(height)}', ha='center', va='bottom', fontsize=8)
-        ax1.set_title('Daily Production Trend', fontsize=10)
-        ax1.tick_params(axis='x', rotation=45)
-        st.pyplot(fig1)
-
-    with col2:
-        company_summary = df.groupby('Company')['Seal Count'].sum().reset_index()
-        fig2, ax2 = plt.subplots(figsize=(4, 2))
-        bars = ax2.bar(company_summary['Company'], company_summary['Seal Count'], color='lightgreen')
-        for bar in bars:
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width() / 2.0, height, f'{int(height)}', ha='center', va='bottom', fontsize=8)
-        ax2.set_title('Production by Company', fontsize=10)
-        ax2.tick_params(axis='x', rotation=45)
-        st.pyplot(fig2)
+            st.sidebar.success("Production entry saved successfully.")
