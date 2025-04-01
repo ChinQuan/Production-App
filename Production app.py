@@ -1,7 +1,14 @@
 import streamlit as st
+import os
+import shutil
 
-# Wyczyść cache Streamlit
+# Usuń katalog cache Streamlit
+if os.path.exists(".streamlit"):
+    shutil.rmtree(".streamlit")
+
+# Dodatkowo wyczyść cache danych Streamlit
 st.cache_data.clear()
+
 
 import streamlit as st
 import pandas as pd
