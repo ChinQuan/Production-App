@@ -154,3 +154,21 @@ if st.session_state.user is not None:
             df = pd.concat([df, new_entry], ignore_index=True)
             save_data(df)
             st.sidebar.success("Production entry saved successfully.")
+
+    # Display Production Data
+    st.header("Production Data Overview")
+    st.dataframe(df)
+
+    # Display Statistics
+    st.header("Production Statistics")
+    if not df.empty:
+        daily_average = df['Seal Count'].mean()
+        st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+
+        top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
+        st.write("### Top 3 Companies by Production")
+        st.write(top_companies)
+
+        top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
+        st.write("### Top 3 Operators by Production")
+        st.write(top_operators)
