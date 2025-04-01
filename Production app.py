@@ -3,11 +3,11 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 # Initialize the application
 st.set_page_config(page_title="Production Manager App", layout="wide")
 st.title("Production Manager App")
-
 
 # Load production data from CSV
 def load_data():
@@ -16,11 +16,8 @@ def load_data():
     except FileNotFoundError:
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
-
-# Save production data to CSV
 def save_data(df):
     df.to_csv('production_data.csv', index=False)
-
 
 df = load_data()
 
@@ -29,7 +26,7 @@ menu = st.sidebar.radio("Go to", ['Home', 'Production Charts'])
 
 if menu == 'Home':
     st.header("Production Data Overview")
-    
+
     if not df.empty:
         st.dataframe(df)
 
@@ -98,30 +95,33 @@ if menu == 'Production Charts':
 
         st.write("Filtered Data", filtered_df)
 
-        # Daily Production Trend
-        fig, ax = plt.subplots(figsize=(8, 4))
-        daily_trend = filtered_df.groupby('Date')['Seal Count'].sum().reset_index()
-        sns.lineplot(x='Date', y='Seal Count', data=daily_trend, ax=ax)
-        ax.set_title("Daily Production Trend")
-        st.pyplot(fig)
+        # Wykresy
+        col1, col2 = st.columns([2, 1])
 
-        # Production by Company
-        fig, ax = plt.subplots(figsize=(8, 4))
-        company_trend = filtered_df.groupby('Company')['Seal Count'].sum().reset_index()
-        sns.barplot(x='Company', y='Seal Count', data=company_trend, ax=ax)
-        ax.set_title("Production by Company")
-        st.pyplot(fig)
+        with col1:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            daily_trend = filtered_df.groupby('Date')['Seal Count'].sum().reset_index()
+            sns.lineplot(x='Date', y='Seal Count', data=daily_trend, ax=ax)
+            ax.set_title("Daily Production Trend")
+            st.pyplot(fig)
 
-        # Production by Seal Type
-        fig, ax = plt.subplots(figsize=(8, 4))
-        seal_type_trend = filtered_df.groupby('Seal Type')['Seal Count'].sum().reset_index()
-        sns.barplot(x='Seal Type', y='Seal Count', data=seal_type_trend, ax=ax)
-        ax.set_title("Production by Seal Type")
-        st.pyplot(fig)
+        with col1:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            company_trend = filtered_df.groupby('Company')['Seal Count'].sum().reset_index()
+            sns.barplot(x='Company', y='Seal Count', data=company_trend, ax=ax)
+            ax.set_title("Production by Company")
+            st.pyplot(fig)
 
-        # Production by Operator
-        fig, ax = plt.subplots(figsize=(8, 4))
-        operator_trend = filtered_df.groupby('Operator')['Seal Count'].sum().reset_index()
-        sns.barplot(x='Operator', y='Seal Count', data=operator_trend, ax=ax)
-        ax.set_title("Production by Operator")
-        st.pyplot(fig)
+        with col1:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            seal_type_trend = filtered_df.groupby('Seal Type')['Seal Count'].sum().reset_index()
+            sns.barplot(x='Seal Type', y='Seal Count', data=seal_type_trend, ax=ax)
+            ax.set_title("Production by Seal Type")
+            st.pyplot(fig)
+
+        with col1:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            operator_trend = filtered_df.groupby('Operator')['Seal Count'].sum().reset_index()
+            sns.barplot(x='Operator', y='Seal Count', data=operator_trend, ax=ax)
+            ax.set_title("Production by Operator")
+            st.pyplot(fig)
