@@ -138,32 +138,26 @@ if st.session_state.user is not None:
     if menu == 'Production Charts':
         st.header("Production Charts")
         if not df.empty:
-            plt.figure(figsize=(4, 3))
+            fig, ax = plt.subplots(figsize=(6, 4))
             daily_trend = df.groupby('Date')['Seal Count'].sum()
-            ax = daily_trend.plot(kind='bar', color='skyblue')
-            plt.title('Daily Production Trend')
-            plt.xlabel('Date')
-            plt.ylabel('Seal Count')
-            for p in ax.patches:
-                ax.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.01))
-            st.pyplot(plt)
+            bars = ax.bar(daily_trend.index, daily_trend.values, color='skyblue')
+            for bar in bars:
+                ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                            xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+            st.pyplot(fig)
 
-            plt.figure(figsize=(4, 3))
+            fig, ax = plt.subplots(figsize=(6, 4))
             company_trend = df.groupby('Company')['Seal Count'].sum()
-            ax = company_trend.plot(kind='bar', color='lightgreen')
-            plt.title('Production by Company')
-            plt.xlabel('Company')
-            plt.ylabel('Seal Count')
-            for p in ax.patches:
-                ax.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.01))
-            st.pyplot(plt)
+            bars = ax.bar(company_trend.index, company_trend.values, color='lightgreen')
+            for bar in bars:
+                ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                            xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+            st.pyplot(fig)
 
-            plt.figure(figsize=(4, 3))
+            fig, ax = plt.subplots(figsize=(6, 4))
             seal_type_trend = df.groupby('Seal Type')['Seal Count'].sum()
-            ax = seal_type_trend.plot(kind='bar', color='coral')
-            plt.title('Production by Seal Type')
-            plt.xlabel('Seal Type')
-            plt.ylabel('Seal Count')
-            for p in ax.patches:
-                ax.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.01))
-            st.pyplot(plt)
+            bars = ax.bar(seal_type_trend.index, seal_type_trend.values, color='coral')
+            for bar in bars:
+                ax.annotate(str(int(bar.get_height())), xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                            xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', fontsize=8)
+            st.pyplot(fig)
