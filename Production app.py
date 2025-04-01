@@ -141,6 +141,25 @@ if st.session_state.user is not None:
             df = pd.concat([df, new_entry], ignore_index=True)
             save_data(df)
 
+    # Display Production Data
+    st.header("Production Data Overview")
+    st.dataframe(df)
+
+    # Display Statistics
+    st.header("Production Statistics")
+    if not df.empty:
+        daily_average = df['Seal Count'].mean()
+        st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+
+        top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
+        st.write("### Top 3 Companies by Production")
+        st.write(top_companies)
+
+        top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
+        st.write("### Top 3 Operators by Production")
+        st.write(top_operators)
+
+    # Display Charts
     st.header("Production Charts")
     col1, col2 = st.columns(2)
 
@@ -148,20 +167,20 @@ if st.session_state.user is not None:
         daily_summary = df.groupby('Date')['Seal Count'].sum().reset_index()
         fig1, ax1 = plt.subplots(figsize=(4, 2))
         bars = ax1.bar(daily_summary['Date'], daily_summary['Seal Count'], color='skyblue')
-        ax1.set_title('Daily Production Trend', fontsize=10)
-        ax1.tick_params(axis='x', rotation=45)
         for bar in bars:
             height = bar.get_height()
             ax1.text(bar.get_x() + bar.get_width() / 2.0, height, f'{int(height)}', ha='center', va='bottom', fontsize=8)
-        st.pyplot(fig1, use_container_width=False)
+        ax1.set_title('Daily Production Trend', fontsize=10)
+        ax1.tick_params(axis='x', rotation=45)
+        st.pyplot(fig1)
 
     with col2:
         company_summary = df.groupby('Company')['Seal Count'].sum().reset_index()
         fig2, ax2 = plt.subplots(figsize=(4, 2))
         bars = ax2.bar(company_summary['Company'], company_summary['Seal Count'], color='lightgreen')
-        ax2.set_title('Production by Company', fontsize=10)
-        ax2.tick_params(axis='x', rotation=45)
         for bar in bars:
             height = bar.get_height()
             ax2.text(bar.get_x() + bar.get_width() / 2.0, height, f'{int(height)}', ha='center', va='bottom', fontsize=8)
-        st.pyplot(fig2, use_container_width=False)
+        ax2.set_title('Production by Company', fontsize=10)
+        ax2.tick_params(axis='x', rotation=45)
+        st.pyplot(fig2)
