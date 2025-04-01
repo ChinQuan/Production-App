@@ -2,12 +2,17 @@ import streamlit as st
 import os
 import shutil
 
-# Usuń katalog cache Streamlit
+# Wyczyść cache Streamlit
+st.cache_data.clear()
+
+# Usuń katalog cache Streamlit jeśli istnieje
 if os.path.exists(".streamlit"):
     shutil.rmtree(".streamlit")
 
-# Dodatkowo wyczyść cache danych Streamlit
-st.cache_data.clear()
+# Usuń charts.py jeśli istnieje
+if os.path.exists("charts.py"):
+    os.remove("charts.py")
+
 
 
 import streamlit as st
