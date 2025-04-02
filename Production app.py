@@ -108,28 +108,33 @@ else:
         if not df.empty:
             st.dataframe(df)
 
+            # Production Statistics
+            st.header("📈 Production Statistics")
+
+            # Average Daily Production
+            daily_seals = df.groupby('Date')['Seal Count'].sum()
+            daily_average = daily_seals.mean() if not daily_seals.empty else 0
+            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+
+            # Top 3 Companies
+            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
+            st.write("### Top 3 Companies by Production")
+            st.write(top_companies)
+
+            # Top 3 Operators
+            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
+            st.write("### Top 3 Operators by Production")
+            st.write(top_operators)
+
     with tab2:
         st.header("📈 Production Charts")
         if not df.empty:
             date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
-            selected_operators = st.sidebar.multiselect("Select Operators", options=sorted(df['Operator'].unique().tolist()), default=[])
-            selected_companies = st.sidebar.multiselect("Select Companies", options=sorted(df['Company'].unique().tolist()), default=[])
-            selected_seal_types = st.sidebar.multiselect("Select Seal Types", options=sorted(df['Seal Type'].unique().tolist()), default=[])
-
             filtered_df = df.copy()
 
             if len(date_range) == 2:
                 start_date, end_date = date_range
                 filtered_df = filtered_df[(filtered_df['Date'] >= start_date) & (filtered_df['Date'] <= end_date)]
-
-            if selected_operators:
-                filtered_df = filtered_df[filtered_df['Operator'].isin(selected_operators)]
-
-            if selected_companies:
-                filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
-
-            if selected_seal_types:
-                filtered_df = filtered_df[filtered_df['Seal Type'].isin(selected_seal_types)]
 
             filtered_df['Date'] = filtered_df['Date'].astype(str)
 
