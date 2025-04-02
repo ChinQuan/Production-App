@@ -10,17 +10,21 @@ st.title("Production Manager App")
 
 # Get current working directory
 current_dir = os.getcwd()
-DATA_FILE = os.path.join(current_dir, 'Production_orders.csv')  # Nowa nazwa pliku
+DATA_FILE = os.path.join(current_dir, 'Production_orders.csv')
+TEST_FILE = os.path.join(current_dir, 'test_file.txt')
 
 # Displaying directory information
 st.sidebar.write(f"📂 Current Directory: {current_dir}")
 st.sidebar.write(f"📂 Current Data File Path: {DATA_FILE}")
 
-# Test if directory is writable
-if os.access(current_dir, os.W_OK):
-    st.sidebar.write("✅ Write access to the current directory is available.")
-else:
-    st.sidebar.error("❌ No write access to the current directory. Check permissions.")
+# Test if directory is writable by creating a test file
+try:
+    with open(TEST_FILE, 'w') as f:
+        f.write('Test file creation successful.')
+    st.sidebar.write("✅ Test file 'test_file.txt' created successfully.")
+    os.remove(TEST_FILE)  # Delete the test file after successful creation
+except Exception as e:
+    st.sidebar.error(f"❌ Failed to create test file: {e}")
 
 # Load users data from Excel without password encryption
 def load_users():
@@ -117,3 +121,23 @@ else:
             df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
             save_data(df)
             st.sidebar.success("Production entry saved successfully.")
+
+    # Main Page Tabs
+    tab1, tab2 = st.tabs(["Home", "Production Charts"])
+
+    with tab1:
+        st.header("📊 Production Data Overview")
+        if not df.empty:
+            st.dataframe(df)
+
+            st.header("📈 Production Statistics")
+            daily_average = df.groupby('Date')['Seal Count'].sum().mean()
+            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+
+            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
+            st.write("### Top 3 Companies by Production")
+            st.write(top_companies)
+
+            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
+            st.write("### Top 3 Operators by Production")
+            st.write(top_operators)
