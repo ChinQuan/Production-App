@@ -31,11 +31,13 @@ def login(username, password, users_df):
 # Load production data from CSV
 def load_data():
     if os.path.exists(DATA_FILE):
+        st.sidebar.write("📥 Found existing file: Loading data...")
         df = pd.read_csv(DATA_FILE)
         if 'Date' in df.columns:
             df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
         return df
     else:
+        st.sidebar.write("📄 No existing file found. Creating a new DataFrame.")
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
 # Save data safely
