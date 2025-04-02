@@ -148,4 +148,18 @@ else:
             if selected_seal_types:
                 filtered_df = filtered_df[filtered_df['Seal Type'].isin(selected_seal_types)]
 
+            filtered_df['Date'] = filtered_df['Date'].astype(str)  # Konwersja na string dla wykresów
+
             st.write("Filtered Data", filtered_df)
+
+            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
+            st.plotly_chart(fig)
