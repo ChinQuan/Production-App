@@ -29,9 +29,13 @@ def login(username, password, users_df):
     return None
 
 # Load production data from CSV
+
 def load_data():
     if os.path.exists(DATA_FILE):
-        return pd.read_csv(DATA_FILE)
+        df = pd.read_csv(DATA_FILE)
+        if 'Date' in df.columns:
+            df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date  # Konwersja do datetime.date
+        return df
     else:
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
@@ -116,7 +120,7 @@ else:
 
             if len(date_range) == 2:
                 start_date, end_date = date_range
-                filtered_df = filtered_df[(filtered_df['Date'] >= str(start_date)) & (filtered_df['Date'] <= str(end_date))]
+                filtered_df = filtered_df[(filtered_df['Date'] >= start_date) & (filtered_df['Date'] <= end_date)]
 
             if selected_operators:
                 filtered_df = filtered_df[filtered_df['Operator'].isin(selected_operators)]
