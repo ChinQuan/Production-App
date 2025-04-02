@@ -44,7 +44,8 @@ def save_data(df):
         df.to_csv(DATA_FILE, index=False)
         st.sidebar.write("✅ Data saved successfully!")
         st.sidebar.write("📄 File Content:")
-        st.sidebar.write(pd.read_csv(DATA_FILE))
+        file_content = pd.read_csv(DATA_FILE)
+        st.sidebar.write(file_content)
     except Exception as e:
         st.sidebar.error(f"❌ Error saving data: {e}")
 
