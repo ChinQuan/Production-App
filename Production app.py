@@ -65,78 +65,74 @@ else:
     if st.sidebar.button("Logout"):
         st.session_state.user = None
 
-    menu = st.sidebar.selectbox("Navigate", ['Home', 'Production Charts', 'Add Entry'])
+    st.header("📊 Production Data Overview")
+    if not df.empty:
+        st.dataframe(df)
 
-    if menu == 'Home':
-        st.header("📊 Production Data Overview")
-        if not df.empty:
-            st.dataframe(df)
+    # Add Entry Form
+    st.header("➕ Add New Production Entry")
+    with st.form("production_form"):
+        date = st.date_input("Production Date", value=datetime.date.today())
+        company = st.text_input("Company Name")
+        operator = st.text_input("Operator", value=st.session_state.user['Username'])
+        seal_type = st.selectbox("Seal Type", ['Standard Soft', 'Standard Hard', 'Custom Soft', 'Custom Hard', 'V-Rings'])
+        seals_count = st.number_input("Number of Seals", min_value=0, step=1)
+        production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=0.1)
+        downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=0.1)
+        downtime_reason = st.text_input("Reason for Downtime")
+        submitted = st.form_submit_button("Save Entry")
 
-    if menu == 'Add Entry':
-        st.header("➕ Add New Production Entry")
-        with st.form("production_form"):
-            date = st.date_input("Production Date", value=datetime.date.today())
-            company = st.text_input("Company Name")
-            operator = st.text_input("Operator", value=st.session_state.user['Username'])
-            seal_type = st.selectbox("Seal Type", ['Standard Soft', 'Standard Hard', 'Custom Soft', 'Custom Hard', 'V-Rings'])
-            seals_count = st.number_input("Number of Seals", min_value=0, step=1)
-            production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=0.1)
-            downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=0.1)
-            downtime_reason = st.text_input("Reason for Downtime")
-            submitted = st.form_submit_button("Save Entry")
+        if submitted:
+            if company and seals_count > 0 and production_time > 0:
+                new_entry = {
+                    'Date': date,
+                    'Company': company,
+                    'Seal Count': seals_count,
+                    'Operator': operator,
+                    'Seal Type': seal_type,
+                    'Production Time': production_time,
+                    'Downtime': downtime,
+                    'Reason for Downtime': downtime_reason
+                }
+                df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+                save_data(df)
+                st.success("Production entry saved successfully.")
+            else:
+                st.error("Please fill all required fields correctly.")
 
-            if submitted:
-                if company and seals_count > 0 and production_time > 0:
-                    new_entry = {
-                        'Date': date,
-                        'Company': company,
-                        'Seal Count': seals_count,
-                        'Operator': operator,
-                        'Seal Type': seal_type,
-                        'Production Time': production_time,
-                        'Downtime': downtime,
-                        'Reason for Downtime': downtime_reason
-                    }
-                    df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
-                    save_data(df)
-                    st.success("Production entry saved successfully.")
-                else:
-                    st.error("Please fill all required fields correctly.")
+    # Production Charts
+    st.header("📈 Production Charts")
+    if not df.empty:
+        date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
+        selected_operators = st.sidebar.multiselect("Select Operators", options=sorted(df['Operator'].unique().tolist()), default=[])
+        selected_companies = st.sidebar.multiselect("Select Companies", options=sorted(df['Company'].unique().tolist()), default=[])
+        selected_seal_types = st.sidebar.multiselect("Select Seal Types", options=sorted(df['Seal Type'].unique().tolist()), default=[])
 
-    if menu == 'Production Charts':
-        st.header("📈 Production Charts")
+        filtered_df = df.copy()
 
-        if not df.empty:
-            date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
-            selected_operators = st.sidebar.multiselect("Select Operators", options=sorted(df['Operator'].unique().tolist()), default=[])
-            selected_companies = st.sidebar.multiselect("Select Companies", options=sorted(df['Company'].unique().tolist()), default=[])
-            selected_seal_types = st.sidebar.multiselect("Select Seal Types", options=sorted(df['Seal Type'].unique().tolist()), default=[])
+        if len(date_range) == 2:
+            start_date, end_date = date_range
+            filtered_df = filtered_df[(filtered_df['Date'] >= str(start_date)) & (filtered_df['Date'] <= str(end_date))]
 
-            filtered_df = df.copy()
+        if selected_operators:
+            filtered_df = filtered_df[filtered_df['Operator'].isin(selected_operators)]
 
-            if len(date_range) == 2:
-                start_date, end_date = date_range
-                filtered_df = filtered_df[(filtered_df['Date'] >= str(start_date)) & (filtered_df['Date'] <= str(end_date))]
+        if selected_companies:
+            filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
 
-            if selected_operators:
-                filtered_df = filtered_df[filtered_df['Operator'].isin(selected_operators)]
+        if selected_seal_types:
+            filtered_df = filtered_df[filtered_df['Seal Type'].isin(selected_seal_types)]
 
-            if selected_companies:
-                filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
+        st.write("Filtered Data", filtered_df)
 
-            if selected_seal_types:
-                filtered_df = filtered_df[filtered_df['Seal Type'].isin(selected_seal_types)]
+        fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
+        st.plotly_chart(fig)
 
-            st.write("Filtered Data", filtered_df)
+        fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
+        st.plotly_chart(fig)
 
-            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
-            st.plotly_chart(fig)
+        fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
+        st.plotly_chart(fig)
 
-            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
-            st.plotly_chart(fig)
+        fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
+        st.plotly_chart(fig)
