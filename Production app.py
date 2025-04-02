@@ -9,6 +9,7 @@ st.set_page_config(page_title="Production Manager App", layout="wide")
 st.title("Production Manager App")
 
 DATA_FILE = os.path.join(os.getcwd(), 'production_data.csv')
+st.sidebar.write(f"📂 Current Data File Path: {DATA_FILE}")  # Display the current path for debugging
 
 # Load users data from Excel without password encryption
 def load_users():
@@ -39,7 +40,13 @@ def load_data():
 
 # Save data safely
 def save_data(df):
-    df.to_csv(DATA_FILE, index=False)
+    try:
+        df.to_csv(DATA_FILE, index=False)
+        st.sidebar.write("✅ Data saved successfully!")
+        st.sidebar.write("📄 File Content:")
+        st.sidebar.write(pd.read_csv(DATA_FILE))
+    except Exception as e:
+        st.sidebar.error(f"❌ Error saving data: {e}")
 
 # Load users and production data
 users_df = load_users()
