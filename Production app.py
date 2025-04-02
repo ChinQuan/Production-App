@@ -65,13 +65,9 @@ else:
     if st.sidebar.button("Logout"):
         st.session_state.user = None
 
-    st.header("📊 Production Data Overview")
-    if not df.empty:
-        st.dataframe(df)
-
-    # Add Entry Form
-    st.header("➕ Add New Production Entry")
-    with st.form("production_form"):
+    # Sidebar Form for Adding Entries
+    st.sidebar.header("➕ Add New Production Entry")
+    with st.sidebar.form("production_form"):
         date = st.date_input("Production Date", value=datetime.date.today())
         company = st.text_input("Company Name")
         operator = st.text_input("Operator", value=st.session_state.user['Username'])
@@ -96,43 +92,51 @@ else:
                 }
                 df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
                 save_data(df)
-                st.success("Production entry saved successfully.")
+                st.sidebar.success("Production entry saved successfully.")
             else:
-                st.error("Please fill all required fields correctly.")
+                st.sidebar.error("Please fill all required fields correctly.")
 
-    # Production Charts
-    st.header("📈 Production Charts")
-    if not df.empty:
-        date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
-        selected_operators = st.sidebar.multiselect("Select Operators", options=sorted(df['Operator'].unique().tolist()), default=[])
-        selected_companies = st.sidebar.multiselect("Select Companies", options=sorted(df['Company'].unique().tolist()), default=[])
-        selected_seal_types = st.sidebar.multiselect("Select Seal Types", options=sorted(df['Seal Type'].unique().tolist()), default=[])
+    # Main Page Tabs
+    tab1, tab2 = st.tabs(["Home", "Production Charts"])
 
-        filtered_df = df.copy()
+    with tab1:
+        st.header("📊 Production Data Overview")
+        if not df.empty:
+            st.dataframe(df)
 
-        if len(date_range) == 2:
-            start_date, end_date = date_range
-            filtered_df = filtered_df[(filtered_df['Date'] >= str(start_date)) & (filtered_df['Date'] <= str(end_date))]
+    with tab2:
+        st.header("📈 Production Charts")
+        if not df.empty:
+            date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
+            selected_operators = st.sidebar.multiselect("Select Operators", options=sorted(df['Operator'].unique().tolist()), default=[])
+            selected_companies = st.sidebar.multiselect("Select Companies", options=sorted(df['Company'].unique().tolist()), default=[])
+            selected_seal_types = st.sidebar.multiselect("Select Seal Types", options=sorted(df['Seal Type'].unique().tolist()), default=[])
 
-        if selected_operators:
-            filtered_df = filtered_df[filtered_df['Operator'].isin(selected_operators)]
+            filtered_df = df.copy()
 
-        if selected_companies:
-            filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
+            if len(date_range) == 2:
+                start_date, end_date = date_range
+                filtered_df = filtered_df[(filtered_df['Date'] >= str(start_date)) & (filtered_df['Date'] <= str(end_date))]
 
-        if selected_seal_types:
-            filtered_df = filtered_df[filtered_df['Seal Type'].isin(selected_seal_types)]
+            if selected_operators:
+                filtered_df = filtered_df[filtered_df['Operator'].isin(selected_operators)]
 
-        st.write("Filtered Data", filtered_df)
+            if selected_companies:
+                filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
 
-        fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
-        st.plotly_chart(fig)
+            if selected_seal_types:
+                filtered_df = filtered_df[filtered_df['Seal Type'].isin(selected_seal_types)]
 
-        fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
-        st.plotly_chart(fig)
+            st.write("Filtered Data", filtered_df)
 
-        fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
-        st.plotly_chart(fig)
+            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
+            st.plotly_chart(fig)
 
-        fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
-        st.plotly_chart(fig)
+            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
+            st.plotly_chart(fig)
