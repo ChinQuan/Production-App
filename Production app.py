@@ -8,7 +8,7 @@ import plotly.express as px
 st.set_page_config(page_title="Production Manager App", layout="wide")
 st.title("Production Manager App")
 
-DATA_FILE = os.path.join(os.getcwd(), 'production_data.csv')
+DATA_FILE = os.path.join(os.getcwd(), 'Production_orders.csv')  # Nowa nazwa pliku
 st.sidebar.write(f"📂 Current Data File Path: {DATA_FILE}")  # Display the current path for debugging
 
 # Load users data from Excel without password encryption
@@ -43,7 +43,7 @@ def save_data(df):
     try:
         df.to_csv(DATA_FILE, index=False)
         if os.path.exists(DATA_FILE):
-            st.sidebar.write("✅ Data saved successfully! File created: production_data.csv")
+            st.sidebar.write("✅ Data saved successfully! File created: Production_orders.csv")
             file_content = pd.read_csv(DATA_FILE)
             st.sidebar.write(file_content)
         else:
@@ -104,42 +104,3 @@ else:
             df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
             save_data(df)
             st.sidebar.success("Production entry saved successfully.")
-
-    # Main Page Tabs
-    tab1, tab2 = st.tabs(["Home", "Production Charts"])
-
-    with tab1:
-        st.header("📊 Production Data Overview")
-        if not df.empty:
-            st.dataframe(df)
-
-            st.header("📈 Production Statistics")
-            daily_average = df.groupby('Date')['Seal Count'].sum().mean()
-            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
-
-            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Companies by Production")
-            st.write(top_companies)
-
-            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Operators by Production")
-            st.write(top_operators)
-
-    with tab2:
-        st.header("📈 Production Charts")
-        if not df.empty:
-            filtered_df = df.copy()
-            filtered_df['Date'] = filtered_df['Date'].astype(str)
-
-            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
-            fig.update_xaxes(type='category')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
-            st.plotly_chart(fig)
