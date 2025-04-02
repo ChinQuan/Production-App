@@ -42,10 +42,12 @@ def load_data():
 def save_data(df):
     try:
         df.to_csv(DATA_FILE, index=False)
-        st.sidebar.write("✅ Data saved successfully!")
-        st.sidebar.write("📄 File Content:")
-        file_content = pd.read_csv(DATA_FILE)
-        st.sidebar.write(file_content)
+        if os.path.exists(DATA_FILE):
+            st.sidebar.write("✅ Data saved successfully! File created: production_data.csv")
+            file_content = pd.read_csv(DATA_FILE)
+            st.sidebar.write(file_content)
+        else:
+            st.sidebar.error("❌ File was not created! Check write permissions or path.")
     except Exception as e:
         st.sidebar.error(f"❌ Error saving data: {e}")
 
