@@ -58,7 +58,7 @@ def load_data():
 # Save data safely with absolute path
 def save_data(df):
     try:
-        df.to_csv(DATA_FILE, mode='a', header=not os.path.exists(DATA_FILE), index=False)
+        df.to_csv(DATA_FILE, mode='w', header=True, index=False)  # Nadpisywanie pliku w trybie 'w'
         full_path = os.path.abspath(DATA_FILE)
         if os.path.exists(DATA_FILE):
             st.sidebar.write(f"✅ Data saved successfully! File path: {full_path}")
