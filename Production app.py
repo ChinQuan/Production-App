@@ -121,7 +121,6 @@ else:
             df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
             save_data(df)
             st.sidebar.success("Production entry saved successfully.")
-
     # Main Page Tabs
     tab1, tab2 = st.tabs(["Home", "Production Charts"])
 
@@ -141,3 +140,22 @@ else:
             top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
             st.write("### Top 3 Operators by Production")
             st.write(top_operators)
+
+    with tab2:
+        st.header("📈 Production Charts")
+        if not df.empty:
+            filtered_df = df.copy()
+            filtered_df['Date'] = filtered_df['Date'].astype(str)
+
+            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
+            fig.update_xaxes(type='category')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
+            st.plotly_chart(fig)
