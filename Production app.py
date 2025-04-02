@@ -11,6 +11,9 @@ st.title("Production Manager App")
 
 DATA_FILE = os.path.join(os.getcwd(), 'production_data.csv')
 
+# Display the file path for debugging
+st.sidebar.write(f"📂 File Path: {DATA_FILE}")
+
 # Load users data from Excel without password encryption
 def load_users():
     try:
@@ -41,7 +44,13 @@ def load_data():
 
 # Save data safely with absolute path
 def save_data(df):
-    df.to_csv(DATA_FILE, index=False)
+    try:
+        df.to_csv(DATA_FILE, index=False)
+        st.sidebar.write("✅ Data saved successfully!")  # Confirm successful save
+        st.sidebar.write("📄 File Content:")
+        st.sidebar.write(pd.read_csv(DATA_FILE))  # Display the file content to verify save
+    except Exception as e:
+        st.sidebar.write(f"❌ Error saving data: {e}")
 
 # Load users and production data
 users_df = load_users()
@@ -99,56 +108,3 @@ else:
                 st.sidebar.success("Production entry saved successfully.")
             else:
                 st.sidebar.error("Please fill all required fields correctly.")
-
-    # Main Page Tabs
-    tab1, tab2 = st.tabs(["Home", "Production Charts"])
-
-    with tab1:
-        st.header("📊 Production Data Overview")
-        if not df.empty:
-            st.dataframe(df)
-
-            # Production Statistics
-            st.header("📈 Production Statistics")
-
-            # Average Daily Production
-            daily_seals = df.groupby('Date')['Seal Count'].sum()
-            daily_average = daily_seals.mean() if not daily_seals.empty else 0
-            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
-
-            # Top 3 Companies
-            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Companies by Production")
-            st.write(top_companies)
-
-            # Top 3 Operators
-            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
-            st.write("### Top 3 Operators by Production")
-            st.write(top_operators)
-
-    with tab2:
-        st.header("📈 Production Charts")
-        if not df.empty:
-            date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
-            filtered_df = df.copy()
-
-            if len(date_range) == 2:
-                start_date, end_date = date_range
-                filtered_df = filtered_df[(filtered_df['Date'] >= start_date) & (filtered_df['Date'] <= end_date)]
-
-            filtered_df['Date'] = filtered_df['Date'].astype(str)
-
-            st.write("Filtered Data", filtered_df)
-
-            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
-            fig.update_xaxes(type='category')  # Usunięcie godzin z osi X
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
-            st.plotly_chart(fig)
-
-            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
-            st.plotly_chart(fig)
