@@ -3,16 +3,12 @@ import pandas as pd
 import datetime
 import os
 import plotly.express as px
-import plotly.graph_objs as go
 
 # Initialize the application
 st.set_page_config(page_title="Production Manager App", layout="wide")
 st.title("Production Manager App")
 
 DATA_FILE = os.path.join(os.getcwd(), 'production_data.csv')
-
-# Display the file path for debugging
-st.sidebar.write(f"📂 File Path: {DATA_FILE}")
 
 # Load users data from Excel without password encryption
 def load_users():
@@ -32,25 +28,18 @@ def login(username, password, users_df):
     return None
 
 # Load production data from CSV
-
 def load_data():
     if os.path.exists(DATA_FILE):
         df = pd.read_csv(DATA_FILE)
         if 'Date' in df.columns:
-            df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date  # Konwersja do datetime.date
+            df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
         return df
     else:
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
-# Save data safely with absolute path
+# Save data safely
 def save_data(df):
-    try:
-        df.to_csv(DATA_FILE, index=False)
-        st.sidebar.write("✅ Data saved successfully!")  # Confirm successful save
-        st.sidebar.write("📄 File Content:")
-        st.sidebar.write(pd.read_csv(DATA_FILE))  # Display the file content to verify save
-    except Exception as e:
-        st.sidebar.write(f"❌ Error saving data: {e}")
+    df.to_csv(DATA_FILE, index=False)
 
 # Load users and production data
 users_df = load_users()
@@ -92,19 +81,55 @@ else:
         submitted = st.form_submit_button("Save Entry")
 
         if submitted:
-            if company and seals_count > 0 and production_time > 0:
-                new_entry = {
-                    'Date': date,
-                    'Company': company,
-                    'Seal Count': seals_count,
-                    'Operator': operator,
-                    'Seal Type': seal_type,
-                    'Production Time': production_time,
-                    'Downtime': downtime,
-                    'Reason for Downtime': downtime_reason
-                }
-                df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
-                save_data(df)
-                st.sidebar.success("Production entry saved successfully.")
-            else:
-                st.sidebar.error("Please fill all required fields correctly.")
+            new_entry = {
+                'Date': date,
+                'Company': company,
+                'Seal Count': seals_count,
+                'Operator': operator,
+                'Seal Type': seal_type,
+                'Production Time': production_time,
+                'Downtime': downtime,
+                'Reason for Downtime': downtime_reason
+            }
+            df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+            save_data(df)
+            st.sidebar.success("Production entry saved successfully.")
+
+    # Main Page Tabs
+    tab1, tab2 = st.tabs(["Home", "Production Charts"])
+
+    with tab1:
+        st.header("📊 Production Data Overview")
+        if not df.empty:
+            st.dataframe(df)
+
+            st.header("📈 Production Statistics")
+            daily_average = df.groupby('Date')['Seal Count'].sum().mean()
+            st.write(f"### Average Daily Production: {daily_average:.2f} seals")
+
+            top_companies = df.groupby('Company')['Seal Count'].sum().sort_values(ascending=False).head(3)
+            st.write("### Top 3 Companies by Production")
+            st.write(top_companies)
+
+            top_operators = df.groupby('Operator')['Seal Count'].sum().sort_values(ascending=False).head(3)
+            st.write("### Top 3 Operators by Production")
+            st.write(top_operators)
+
+    with tab2:
+        st.header("📈 Production Charts")
+        if not df.empty:
+            filtered_df = df.copy()
+            filtered_df['Date'] = filtered_df['Date'].astype(str)
+
+            fig = px.line(filtered_df, x='Date', y='Seal Count', title='Daily Production Trend')
+            fig.update_xaxes(type='category')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Company', y='Seal Count', title='Production by Company')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Operator', y='Seal Count', title='Production by Operator')
+            st.plotly_chart(fig)
+
+            fig = px.bar(filtered_df, x='Seal Type', y='Seal Count', title='Production by Seal Type')
+            st.plotly_chart(fig)
