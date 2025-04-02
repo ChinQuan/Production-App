@@ -8,8 +8,19 @@ import plotly.express as px
 st.set_page_config(page_title="Production Manager App", layout="wide")
 st.title("Production Manager App")
 
-DATA_FILE = os.path.join(os.getcwd(), 'Production_orders.csv')  # Nowa nazwa pliku
-st.sidebar.write(f"📂 Current Data File Path: {DATA_FILE}")  # Display the current path for debugging
+# Get current working directory
+current_dir = os.getcwd()
+DATA_FILE = os.path.join(current_dir, 'Production_orders.csv')  # Nowa nazwa pliku
+
+# Displaying directory information
+st.sidebar.write(f"📂 Current Directory: {current_dir}")
+st.sidebar.write(f"📂 Current Data File Path: {DATA_FILE}")
+
+# Test if directory is writable
+if os.access(current_dir, os.W_OK):
+    st.sidebar.write("✅ Write access to the current directory is available.")
+else:
+    st.sidebar.error("❌ No write access to the current directory. Check permissions.")
 
 # Load users data from Excel without password encryption
 def load_users():
