@@ -55,12 +55,12 @@ def load_data():
         st.sidebar.write("📄 No existing file found. Creating a new DataFrame.")
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
-# Save data safely
+# Save data safely - NOW USING 'a' MODE TO APPEND
 def save_data(df):
     try:
-        df.to_csv(DATA_FILE, index=False)
+        df.to_csv(DATA_FILE, mode='a', header=not os.path.exists(DATA_FILE), index=False)
         if os.path.exists(DATA_FILE):
-            st.sidebar.write("✅ Data saved successfully! File created: Production_orders.csv")
+            st.sidebar.write(f"✅ Data saved successfully! File: {DATA_FILE}")
             file_content = pd.read_csv(DATA_FILE)
             st.sidebar.write("📄 Current file content:")
             st.sidebar.write(file_content)
@@ -166,3 +166,4 @@ else:
                 st.plotly_chart(fig)
             except Exception as e:
                 st.error(f"❌ Error generating charts: {e}")
+
