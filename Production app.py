@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import bcrypt
 import os
 import plotly.express as px
 import plotly.graph_objs as go
@@ -12,24 +11,20 @@ st.title("Production Manager App")
 
 DATA_FILE = os.path.join(os.getcwd(), 'production_data.csv')
 
-# Load users data from Excel with hashed passwords
+# Load users data from Excel without password encryption
 def load_users():
     try:
         users = pd.read_excel('users.xlsx', sheet_name='Users')
         return users
     except FileNotFoundError:
-        users = pd.DataFrame({'Username': ['admin'], 'Password': [bcrypt.hashpw('admin'.encode(), bcrypt.gensalt()).decode()], 'Role': ['Admin']})
+        users = pd.DataFrame({'Username': ['admin'], 'Password': ['admin'], 'Role': ['Admin']})
         users.to_excel('users.xlsx', sheet_name='Users', index=False)
         return users
 
-# Verify password using bcrypt
-def verify_password(stored_password, provided_password):
-    return bcrypt.checkpw(provided_password.encode(), stored_password.encode())
-
-# Login logic
+# Simple login logic
 def login(username, password, users_df):
-    user = users_df[users_df['Username'] == username]
-    if not user.empty and verify_password(user.iloc[0]['Password'], password):
+    user = users_df[(users_df['Username'] == username) & (users_df['Password'] == password)]
+    if not user.empty:
         return user.iloc[0]
     return None
 
