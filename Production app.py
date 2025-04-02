@@ -10,12 +10,12 @@ st.title("Production Manager App")
 
 # Get current working directory
 current_dir = os.getcwd()
-DATA_FILE = os.path.join(current_dir, 'Production_orders.csv')
-TEST_FILE = os.path.join(current_dir, 'test_file.txt')
+DATA_FILE = os.path.abspath(os.path.join(current_dir, 'Production_orders.csv'))
+TEST_FILE = os.path.abspath(os.path.join(current_dir, 'test_file.txt'))
 
 # Displaying directory information
 st.sidebar.write(f"📂 Current Directory: {current_dir}")
-st.sidebar.write(f"📂 Current Data File Path: {DATA_FILE}")
+st.sidebar.write(f"📂 Absolute Data File Path: {DATA_FILE}")
 
 # Test if directory is writable by creating a test file
 try:
@@ -55,30 +55,20 @@ def load_data():
         st.sidebar.write("📄 No existing file found. Creating a new DataFrame.")
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
-# Save data safely - Now using 'open()' with append mode
+# Save data safely with absolute path
 def save_data(df):
     try:
-        # Check if file exists
-        file_exists = os.path.exists(DATA_FILE)
-        
-        # Prepare the data to append as CSV
-        new_data = df.tail(1)  # Get only the last entry added
-        new_data_csv = new_data.to_csv(index=False, header=not file_exists)
-        
-        # Append data to the file
-        with open(DATA_FILE, 'a', encoding='utf-8') as f:
-            f.write(new_data_csv)
-        
-        st.sidebar.write(f"✅ Data saved successfully to file: {DATA_FILE}")
-        
-        # Debugging: Read the file content and display it
-        file_content = pd.read_csv(DATA_FILE)
-        st.sidebar.write("📄 Current file content:")
-        st.sidebar.write(file_content)
-        
+        df.to_csv(DATA_FILE, mode='a', header=not os.path.exists(DATA_FILE), index=False)
+        full_path = os.path.abspath(DATA_FILE)
+        if os.path.exists(DATA_FILE):
+            st.sidebar.write(f"✅ Data saved successfully! File path: {full_path}")
+            file_content = pd.read_csv(DATA_FILE)
+            st.sidebar.write("📄 Current file content:")
+            st.sidebar.write(file_content)
+        else:
+            st.sidebar.error("❌ File was not created! Check write permissions or path.")
     except Exception as e:
         st.sidebar.error(f"❌ Error saving data: {e}")
-
 
 # Load users and production data
 users_df = load_users()
@@ -177,4 +167,3 @@ else:
                 st.plotly_chart(fig)
             except Exception as e:
                 st.error(f"❌ Error generating charts: {e}")
-
