@@ -55,19 +55,30 @@ def load_data():
         st.sidebar.write("📄 No existing file found. Creating a new DataFrame.")
         return pd.DataFrame(columns=['Date', 'Company', 'Seal Count', 'Operator', 'Seal Type', 'Production Time', 'Downtime', 'Reason for Downtime'])
 
-# Save data safely - NOW USING 'a' MODE TO APPEND
+# Save data safely - Now using 'open()' with append mode
 def save_data(df):
     try:
-        df.to_csv(DATA_FILE, mode='a', header=not os.path.exists(DATA_FILE), index=False)
-        if os.path.exists(DATA_FILE):
-            st.sidebar.write(f"✅ Data saved successfully! File: {DATA_FILE}")
-            file_content = pd.read_csv(DATA_FILE)
-            st.sidebar.write("📄 Current file content:")
-            st.sidebar.write(file_content)
-        else:
-            st.sidebar.error("❌ File was not created! Check write permissions or path.")
+        # Check if file exists
+        file_exists = os.path.exists(DATA_FILE)
+        
+        # Prepare the data to append as CSV
+        new_data = df.tail(1)  # Get only the last entry added
+        new_data_csv = new_data.to_csv(index=False, header=not file_exists)
+        
+        # Append data to the file
+        with open(DATA_FILE, 'a', encoding='utf-8') as f:
+            f.write(new_data_csv)
+        
+        st.sidebar.write(f"✅ Data saved successfully to file: {DATA_FILE}")
+        
+        # Debugging: Read the file content and display it
+        file_content = pd.read_csv(DATA_FILE)
+        st.sidebar.write("📄 Current file content:")
+        st.sidebar.write(file_content)
+        
     except Exception as e:
         st.sidebar.error(f"❌ Error saving data: {e}")
+
 
 # Load users and production data
 users_df = load_users()
